@@ -1,0 +1,11 @@
+name = "mining-courses"
+enable_filestore = false
+enable_gcs_fuse = true
+enable_postgres = true
+enable_mysql = false
+enable_api_gateway = false
+enable_slack = false
+
+[metadata]
+  owner = "harrison.salmon@applied.co"
+  description = "Go + React hello world app"

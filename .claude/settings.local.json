@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(apps-platform docs:*)",
+      "Read(//usr/local/go/bin/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(export PATH=\"/Users/harrisonsalmon/.local/go/bin:$HOME/go/bin:$PATH\")",
+      "Bash(go build:*)",
+      "Bash(export PATH=\"$HOME/.local/go/bin:$HOME/go/bin:$PATH\")",
+      "Bash(go version:*)",
+      "Bash(export PATH=\"$HOME/.local/go/bin:$HOME/.local/bin:$HOME/go/bin:$PATH\")",
+      "Bash(apps-platform app:*)",
+      "Bash(export PATH=\"$HOME/.local/go/bin:$HOME/.local/bin:$HOME/go/bin:$HOME/.local/google-cloud-sdk/bin:$PATH\")",
+      "Bash(gcloud version:*)",
+      "Bash(DB_USER=\"mining-courses-sa@experimental-apps-v2.iam\" DB_NAME=\"postgres\" K_SERVICE=\"mining-courses\" SEED=true ENV=dev go run main.go)",
+      "Bash(apps-platform connect-db:*)",
+      "Bash(brew install:*)",
+      "Bash(export PATH=\"$HOME/.local/go/bin:$HOME/.local/bin:$HOME/go/bin:$HOME/.local/google-cloud-sdk/bin:/opt/homebrew/bin:/usr/local/bin:$PATH\")",
+      "Bash(npm run:*)",
+      "Bash(export PATH=\"$HOME/google-cloud-sdk/bin:$PATH\")",
+      "Bash(gcloud auth:*)",
+      "Bash(npx vite:*)",
+      "Bash(open:*)",
+      "Bash(export PATH=\"$HOME/google-cloud-sdk/bin:$PATH:/Users/harrisonsalmon/.local/go/bin:$HOME/go/bin\")"
+    ]
+  }
+}
