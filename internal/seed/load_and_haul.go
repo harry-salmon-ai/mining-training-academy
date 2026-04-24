@@ -68,22 +68,10 @@ func SeedLoadAndHaulModule(database *gorm.DB, force bool) {
 	})
 	createSlide(database, s1.ID, "Where Load & Haul Fits", "DIAGRAM", 1, map[string]interface{}{
 		"type":        "diagram",
-		"heading":     "Where Load & Haul Fits",
-		"description": "Load & haul is the critical link between extracting material from the ground and delivering it for processing or permanent storage. It typically represents 40-60% of total mining operating costs.",
-		"diagramType": "process",
-		"diagramData": map[string]interface{}{
-			"steps": []map[string]interface{}{
-				{"label": "Drill & Blast", "description": "Fragment rock", "highlight": false},
-				{"label": "Load", "description": "Excavator loads trucks", "highlight": true},
-				{"label": "Haul", "description": "Trucks transport material", "highlight": true},
-				{"label": "Dump / Process", "description": "Tip at destination", "highlight": true},
-				{"label": "Processing", "description": "Crush, screen, process", "highlight": false},
-			},
-			"callout": map[string]interface{}{
-				"text":        "Load & Haul = 40-60% of mining costs",
-				"description": "This is where operational efficiency gains have the biggest financial impact.",
-			},
-		},
+		"heading":     "The Load & Haul Cycle",
+		"description": "Load & haul is the critical link between extracting material from the ground and delivering it to processing or permanent storage. The cycle — load, haul, dump, return — repeats continuously for every truck, every shift. It typically represents 40-60% of total mining operating costs, so small efficiency gains in any step of the cycle have outsized financial impact.",
+		"diagramType": "image",
+		"imageUrl":    "/assets/diagrams/load_haul_cycle.png",
 	})
 	createSlide(database, s1.ID, "Key Roles in Load & Haul", "CONTENT", 2, map[string]interface{}{
 		"type":      "content",
@@ -97,7 +85,55 @@ func SeedLoadAndHaulModule(database *gorm.DB, force bool) {
 			{"title": "Road Maintenance Crew", "description": "Maintains haul road surface quality — directly impacts tyre life, fuel consumption, and cycle times."},
 		},
 	})
-	createSlide(database, s1.ID, "Mining Value Chain Overview", "PROCESS", 3, map[string]interface{}{
+	createSlide(database, s1.ID, "Truck Spotting — Shovel Shadow Technique", "CONTENT", 3, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Truck Spotting — Shovel Shadow Technique",
+		"introText": "Spotting is how the truck driver positions the tray under the excavator bucket. The shovel shadow method is the industry standard — consistent, safe, and maximises loading efficiency.",
+		"items": []map[string]interface{}{
+			{"title": "The Shadow Method", "description": "With the bucket held out at loading height, the excavator casts a shadow on the ground. The truck reverses into that shadow — when the shadow falls across the tray, the truck is in the bucket's swing arc. This gives the operator a clear, repeatable visual cue without radio guidance."},
+			{"title": "Tyre Placement Target", "description": "Front tyre aligned to the bucket lip (visible through the rear-view mirror). This puts the tray centered under the bucket for a balanced load and minimum swing angle."},
+			{"title": "Common Mistake — Under-Spotting", "description": "Truck stops short of the bucket. The excavator has to stretch and dump early, causing bucket stalling, partial loads, and uneven weight distribution."},
+			{"title": "Common Mistake — Over-Spotting", "description": "Truck reverses too far — into the excavator's swing radius. This is a collision risk: the bucket or counterweight can strike the cab on the next swing. Always stop in the shadow, never past it."},
+			{"title": "Single-Pass vs Two-Pass Loading", "description": "Single-pass = truck takes one load and leaves; fast cycle but requires perfect matching of bucket size to truck capacity. Two-pass (two trucks in sequence at the same face) = higher excavator utilisation on mismatched fleets, but doubles spotting operations and increases collision exposure."},
+		},
+	})
+	createSlide(database, s1.ID, "Payload Management & On-Board Weighing", "CONTENT", 4, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Payload Management & On-Board Weighing",
+		"introText": "Every tonne the truck doesn't carry — or carries over nominal — costs money. On-Board Weighing (OBW) is how the fleet keeps payload on target, load after load.",
+		"items": []map[string]interface{}{
+			{"title": "How OBW Works", "description": "Load cells or suspension pressure sensors measure the weight of material in the tray. Reading updates live as the bucket dumps. Operator sees current payload on in-cab display; supervisor sees fleet-wide payload distribution on FMS."},
+			{"title": "Target Utilisation", "description": "Aim for >95% of nominal payload. A 290 t truck should consistently deliver 275–290 t loads. Loads below 275 t are 'light' — productivity lost. Loads above 290 t are overloads — damage and safety risk."},
+			{"title": "Overloading Consequences", "description": "Tyre overheating and accelerated wear (tyres are ~$80k each on ultra-class), suspension strut damage, frame fatigue, haul road surface degradation from excess axle load. Most OEMs void warranty on chronic overloads."},
+			{"title": "Under-Loading Consequences", "description": "Every light load = lost tonnes at the same fuel burn and cycle time. A 10% under-load across a fleet of 20 trucks = equivalent to parking 2 trucks. Cost per tonne goes up linearly."},
+			{"title": "FMS Integration", "description": "OBW data streams into the FMS. Dashboards show payload distribution per truck, per operator, per shovel. Outlier operators get coaching; outlier shovels indicate bucket fill or face-presentation problems. OBW is the feedback loop that makes payload targets real."},
+		},
+	})
+	createSlide(database, s1.ID, "FMS Dispatch — How Trucks Get Assigned", "CONTENT", 5, map[string]interface{}{
+		"type":      "content",
+		"heading":   "FMS Dispatch — How Trucks Get Assigned",
+		"introText": "Modern open-cut mines don't direct trucks by radio. The Fleet Management System (FMS) assigns trucks to shovels and dumps in real time, based on live cycle data, queue lengths, and priority rules.",
+		"items": []map[string]interface{}{
+			{"title": "FMS Role", "description": "Real-time allocation of trucks to loading units (shovels, loaders) and dump destinations (crusher, waste dumps, stockpiles). The system continuously re-optimises assignments to minimise truck idle time and shovel idle time."},
+			{"title": "In-Cab Display", "description": "Operators receive their next assignment on the in-cab display — truck ID, source, destination, route. Not radio-directed. This removes dispatcher-operator radio chatter and makes assignments auditable."},
+			{"title": "Pre-Start Workflow", "description": "Operator logs in (card or PIN), enters shift and crew details, completes pre-start checks in the FMS. The system then assigns the first task — usually the nearest productive shovel with available queue capacity."},
+			{"title": "Dynamic Reassignment", "description": "Mid-cycle reassignment happens constantly. If the assigned shovel's queue grows beyond threshold, the system may divert the truck to a closer shovel. If a crusher fills, ore trucks are re-routed to stockpile. Operators must follow the current assignment, not the previous one."},
+			{"title": "When Dispatch Conflicts with Field Reality", "description": "If the assigned route is blocked, the dump is closed, or the ground is unsafe — do NOT force the task. Call the supervisor on radio, report the blocker, wait for reassignment. The FMS does not see everything on the ground; operators are the final safety gate."},
+		},
+	})
+	createSlide(database, s1.ID, "Dozer Interaction at the Dump", "CONTENT", 6, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Dozer Interaction at the Dump",
+		"introText": "The dozer is the partner of the haul truck at every dump. Its job is to maintain a safe, productive tipping face — and the truck-dozer interaction is one of the highest-risk interfaces on the mine.",
+		"items": []map[string]interface{}{
+			{"title": "Dozer Role at the Dump", "description": "Push tipped material over the dump edge (paddock dumps) or down the highwall slope. Rebuild the windrow after each tip. Push fines back from the travel surface. Maintain a flat, well-drained tipping pad for trucks."},
+			{"title": "Windrow — The Safety Berm", "description": "Continuous earth berm along the dump edge. Minimum height = 0.5 × largest truck tyre height (typically 1.5–2 m for ultra-class trucks). The windrow is the last physical barrier preventing a truck from going over the edge. Never dump on a section with a broken or missing windrow."},
+			{"title": "Reverse Distance Rule", "description": "Truck rear tyres must not come closer than 1 m from the windrow. The truck reverses until rear tyres contact the windrow, then stops. Reversing into the windrow at speed or pushing through it is a fatal-class risk event."},
+			{"title": "No Simultaneous Operation", "description": "Dozer and truck must not operate at the same dump face at the same time. Clear radio communication: dozer announces 'clear' before the next truck can approach; truck announces 'tipping' before the dozer re-enters. One machine at a time on the tipping pad."},
+			{"title": "Dozer Cleanup", "description": "Between truck cycles, the dozer pushes fines and spill material back from the haul road onto the tipping face, and re-levels the pad. This maintains the surface for the next truck and prevents tyre damage from loose rock on the travel surface."},
+		},
+	})
+	createSlide(database, s1.ID, "Mining Value Chain Overview", "PROCESS", 7, map[string]interface{}{
 		"type":        "process",
 		"heading":     "Mining Value Chain Overview",
 		"description": "The full lifecycle of material from in-situ rock to final product.",
