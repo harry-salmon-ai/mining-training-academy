@@ -379,6 +379,49 @@ func SeedVisitingMineSiteModule(database *gorm.DB, force bool) {
 		},
 	})
 
+	createSlide(database, s3.ID, "Shift Handover", "CONTENT", 8, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Shift Handover",
+		"introText": "Shift change is the highest-risk window in a 24-hour mine day. Situational awareness drops, communication loads spike, and people and machines are moving in patterns different to normal production. If you're visiting, know what's happening and stay out of the way.",
+		"items": []map[string]interface{}{
+			{"title": "Why Shift Change Is High-Risk", "description": "Two crews on site at the same time. Outgoing crew is fatigued. Incoming crew does not yet have current-state awareness. Radio traffic spikes. Accidents disproportionately cluster at shift change — historical data across open-cut mines is consistent on this."},
+			{"title": "Pre-Start Meeting", "description": "Before the incoming crew starts equipment, they attend a pre-start briefing with the supervisor. Covers: current ground conditions, active hazards, blast schedules, equipment status, production priorities. Takes 15–30 minutes. No equipment moves until pre-start is complete."},
+			{"title": "Equipment Handover", "description": "Incoming operator walks around the machine with the outgoing operator. Covers: running hours, known defects, fuel/oil levels, recent fault codes, any unusual behaviour. Signed off before keys change hands. The walk-around is not optional, even if you 'know' the machine."},
+			{"title": "Visitor Rule — Don't Arrive During Shift Change", "description": "Typical shift times are 6am/6pm or 7am/7pm (site-specific). Never arrive at a production area during the ±30 minute window unless your host has briefed the crew. No one has time to host a visitor during handover, and an uninformed visitor is a hazard."},
+			{"title": "If You're Caught in Shift Change", "description": "Stay in the crib room or your light vehicle. Do not walk around production areas. Wait for the pre-start to complete and for your host to collect you. It's boring. It's also correct."},
+			{"title": "FIFO Context", "description": "On fly-in fly-out sites, shift change also involves personnel movements — buses to and from accommodation, helicopters for remote sites. These movements add traffic, noise, and timing pressure to an already busy period."},
+		},
+	})
+
+	createSlide(database, s3.ID, "Interacting with Mine Controllers & FMS", "CONTENT", 9, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Interacting with Mine Controllers & FMS",
+		"introText": "The mine controller (sometimes called the dispatcher) sits in the control room and is the real-time operator of the entire mobile fleet. As a software or technology visitor, this is the person you most want to understand — they are the live user of the FMS.",
+		"items": []map[string]interface{}{
+			{"title": "What a Mine Controller Does", "description": "Manages all mobile equipment movements via the FMS. Assigns trucks to shovels and dumps, manages queues, responds to equipment breakdowns and route closures, coordinates with maintenance and production supervisors. One controller typically manages a fleet of 30–60 trucks plus loading and auxiliary equipment."},
+			{"title": "Why They Matter to a Tech Visitor", "description": "The mine controller is your primary window into real-time operations. They use the FMS continuously for 12 hours a shift. They know every quirk, workaround, and pain point. Understanding their day-to-day beats any amount of documentation."},
+			{"title": "What They Can Show You", "description": "Live equipment positions on the mine map, current queue lengths at each shovel and crusher, payload history per truck, cycle times and trends, alarm history, recent dispatch decisions. Ask to sit behind them for 30 minutes during a quiet period."},
+			{"title": "Protocol", "description": "Always ask permission before entering the control room — it's a restricted area. Don't distract during active incidents (equipment down, blast clearance, emergency response). Keep conversation quiet and out of the controller's line of sight to their screens."},
+			{"title": "Common FMS Products", "description": "Modular Mining Dispatch (the original and still most common in open-cut), Wenco (strong in North America and coal), Caterpillar MineStar / Command (tied to Cat fleet), Hexagon Mining. Know which system the site runs before you visit — terminology and workflow differ."},
+			{"title": "Good Questions to Ask", "description": "'What's your current bottleneck — shovel, crusher, or dump?' 'How are you managing the shovel queue at Face 7?' 'What would you change about the FMS if you could?' These questions show domain awareness and get real answers."},
+		},
+	})
+
+	createSlide(database, s3.ID, "Radio Protocol on Site", "CONTENT", 10, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Radio Protocol on Site",
+		"introText": "The mine radio is life-safety communication. Every transmission is heard by everyone on the channel. Protocol is strict because it has to be — a garbled or incorrect call during a critical event can kill someone.",
+		"items": []map[string]interface{}{
+			{"title": "Treat Every Transmission Seriously", "description": "The radio is not a social channel. No chitchat, no jokes, no unnecessary traffic. Listen before you transmit. Only transmit when you have information the channel needs."},
+			{"title": "Call Sign Format", "description": "Your identifier is your vehicle registration or role — 'LV 47' (light vehicle 47), 'Supervisor 3', 'Haul 142', 'Dozer 7'. Never use names. Call sign first, then recipient, then message: 'LV 47 to Controller — requesting entry to Haul Road 7.'"},
+			{"title": "Standard Calls", "description": "Location: 'LV 47 on haul road 7 southbound.' Blast clearance: 'All clear 7B — exclusion zone secure.' Hazard: 'Spillage reported haul road 4 at chainage 2100.' Short, specific, unambiguous."},
+			{"title": "Road Closures", "description": "Listen for closure announcements before any movement — 'Road 4 closed for blast, reopen 14:30.' Do not enter a closed road. Plan an alternate route and inform the controller. Closures are pushed on the radio, not written down."},
+			{"title": "Blast Warnings", "description": "'Fire fire fire — [blast location] — all traffic hold position.' This is a direct, immediate instruction. All vehicles stop where they are. No movement until the all-clear is broadcast. Ignoring this call is grounds for immediate removal from site."},
+			{"title": "Visitor Behaviour", "description": "If you're in a light vehicle with a site radio, listen only — do not transmit unless it's an emergency. Your host or driver handles all radio traffic. Even if you hear silence on the channel, someone is listening."},
+			{"title": "Emergency Call", "description": "'Mayday Mayday Mayday — [your location] — [nature of emergency].' Used only for imminent danger to life. All other traffic stops. The controller acknowledges and dispatches response. Every person on the channel is expected to stop what they are doing and assist if needed."},
+		},
+	})
+
 	// ── Section 4: Mine Lingo ───────────────────────────────────────────────
 	s4 := createSection(database, module.ID, "Mine Lingo", 3)
 

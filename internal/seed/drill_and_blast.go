@@ -250,11 +250,12 @@ func SeedDrillAndBlastModule(database *gorm.DB, force bool) {
 		},
 	})
 
-	createSlide(database, s2.ID, "Blast Pattern Layout", "IMAGE", 3, map[string]interface{}{
-		"type":        "image",
-		"heading":     "Blast Pattern Layout — Staggered vs Square",
-		"description": "Aerial view of a marked-out blast pattern on a bench surface. In a staggered (offset) pattern, holes in adjacent rows are offset by half the spacing distance — this distributes explosive energy more uniformly than a square grid. Staggered patterns are the industry standard for production blasting because they reduce the maximum distance from any point in the rock mass to the nearest blast hole, improving fragmentation consistency.",
-		"imageUrl":    "https://assets.miningacademy.com/images/blast-pattern-aerial-staggered.jpg",
+	createSlide(database, s2.ID, "Blast Pattern Layout", "DIAGRAM", 3, map[string]interface{}{
+		"type":        "diagram",
+		"heading":     "Blast Pattern Layout — Burden, Spacing, and Echelon Timing",
+		"description": "Top-down view of a production blast pattern. Holes are laid out on a staggered grid defined by burden (B — distance to the free face) and spacing (S — distance between holes in a row). The echelon timing sequence — shown as contour lines of equal firing time — creates a moving free face: each hole fires with enough delay after its neighbours for the broken rock to start moving, giving the next hole somewhere to throw material. This combination of geometry and timing is what turns a static pattern into a controlled fragmentation event.",
+		"diagramType": "image",
+		"imageUrl":    "/assets/diagrams/blast_pattern_top_down.png",
 	})
 
 	// ── Section 3: Explosives and Loading ────────────────────────────────
@@ -596,6 +597,49 @@ func SeedDrillAndBlastModule(database *gorm.DB, force bool) {
 				"title":       "Environmental Limits",
 				"description": "Vibration (PPV) and airblast (dB(L)) limits are set by the mining licence or environmental approval. Exceedance triggers investigation, potential production curtailment, and regulatory action. Continuous blast monitoring (seismographs at compliance locations) is standard. Results must be recorded and available for regulatory audit.",
 			},
+		},
+	})
+
+	createSlide(database, s5.ID, "Misfire Procedures", "CONTENT", 4, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Misfire Procedures",
+		"introText": "A misfire is any hole or charge that fails to detonate as planned. Misfires are the single most dangerous post-blast condition — the procedure is regulated, specific, and must never be improvised.",
+		"items": []map[string]interface{}{
+			{"title": "Definition", "description": "Any hole or portion of a charge that fails to detonate at the designed time. Includes complete misfires, partial column detonations, and cut-offs where downstream holes did not receive the firing signal."},
+			{"title": "Immediate Action — Stay Out", "description": "The blast exclusion zone remains fully in force. Do NOT re-enter. No personnel, no equipment, no shortcuts. The unexploded charge can detonate with any disturbance."},
+			{"title": "Notification Chain", "description": "Shot firer is first on scene (the licensed blaster who fired the shot). Shot firer reports to blast supervisor. Blast supervisor escalates to site manager. All three must know before any re-entry decision."},
+			{"title": "Mandatory Wait Times", "description": "Electronic detonators: minimum 30 minutes before any re-entry (allows residual charge to stabilise). Shock tube (non-electric): minimum 1 hour. Some jurisdictions require longer — follow site procedure if stricter."},
+			{"title": "Visual Inspection", "description": "From a safe distance only, ideally with binoculars or drone. Look for undetonated holes (intact stemming), surface expression of unfired charge, visible detonator leads, and any unusual muckpile geometry."},
+			{"title": "Re-Entry", "description": "Only the trained shot firer, following the site-specific misfire protocol. No production personnel. Approach on foot with explosive detection equipment. The shot firer decides on re-shooting, manual extraction, or leave-in-place with exclusion geofence."},
+			{"title": "Wet-Hole Misfires", "description": "Exceptionally high risk. Water desensitises emulsion and ANFO in unpredictable ways — the charge can be dormant for hours then detonate spontaneously. Do NOT attempt to extract. Specialist contractor treatment only."},
+			{"title": "Regulatory Documentation", "description": "Every misfire is a reportable event. Documented in the shot firer's log, blast record, and site regulatory register. Root cause investigation is required before the next blast is fired."},
+		},
+	})
+	createSlide(database, s5.ID, "Environmental & Infrastructure Blast Limits", "CONTENT", 5, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Environmental & Infrastructure Blast Limits",
+		"introText": "Every blast is bounded by regulatory limits on what the blast can do beyond the fence line. Flyrock, ground vibration, and airblast overpressure each have hard numerical limits — exceedance triggers investigation, production curtailment, and potential licence action.",
+		"items": []map[string]interface{}{
+			{"title": "Flyrock Exclusion Zone", "description": "Minimum 500 m from the blast perimeter in all directions for surface blasts. Site-specific risk assessments may extend this — large blasts, adverse geometry, or nearby roads often require 800 m or more. Exclusion is enforced by physical sentries, not signs."},
+			{"title": "Ground Vibration — PPV", "description": "Peak Particle Velocity measured in mm/s at the nearest structure. Typical limit: <10 mm/s at occupied structures. Sensitive structures (heritage buildings, hospitals, precision infrastructure): <2 mm/s. Exceedance = investigation and report to regulator."},
+			{"title": "Airblast Overpressure", "description": "Typical limit: <115 dB(L) at sensitive receptors (residences, schools). Airblast is the dominant complaint driver even when within limits — community perception is often ahead of regulatory thresholds."},
+			{"title": "Monitoring", "description": "Seismograph (triaxial geophone + airblast microphone) at the nearest compliance location for every blast. Data logged, timestamped, and available for regulatory audit. Modern stations are solar-powered, cellular-connected, and can be deployed in 30 minutes."},
+			{"title": "Jurisdictional Variation", "description": "Australia — each state differs. NSW: AS 2187.2 framework, typical 10 mm/s / 115 dB(L) at residences. QLD: similar numerical limits, different monitoring regime. WA: DMIRS guidelines, commonly tighter limits near population centres. International sites follow host-country standards. Know the specific licence limits before the first blast."},
+			{"title": "Pre-Blast Notifications", "description": "Neighbouring residents, infrastructure owners (power, rail, pipeline operators), and aviation authorities (if near flight paths) must be notified in advance. Typical: 24-hour written notice plus same-day confirmation. Failure to notify = licence breach independent of whether any limit was exceeded."},
+		},
+	})
+	createSlide(database, s5.ID, "Electronic Detonator Programming", "CONTENT", 6, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Electronic Detonator Programming",
+		"introText": "Electronic detonators have replaced shock tube as the standard for high-value production blasts. Each detonator is individually addressable and millisecond-programmable — the blast design is literally uploaded to the pattern, hole by hole.",
+		"items": []map[string]interface{}{
+			{"title": "What They Replace", "description": "Shock tube (Nonel) uses pre-manufactured pyrotechnic delays in fixed increments (25, 42, 65 ms etc.) with ±5–10 ms scatter. Electronic detonators (e-dets) use a programmable digital timer with 1 ms resolution and <0.5 ms scatter."},
+			{"title": "Unique Serial Number", "description": "Every e-det carries a unique serial number (and cryptographic ID on modern systems). The number is read into the blast box / logger when the detonator is deployed — no two devices can be confused, and the system records exactly which serial went into which hole."},
+			{"title": "Programming Workflow", "description": "Step 1: tagger walks the pattern with a handheld logger and scans each detonator's ID at its hole location. Step 2: the logger auto-assigns the designed delay time for that hole from the blast design file. Step 3: the complete logged network is uploaded to the blast box (the firing controller)."},
+			{"title": "Network Test", "description": "Before arming, the blast box runs a continuity check across every detonator in the network. The system reports any unit that did not respond — open circuits, damaged wires, failed electronics. The test must pass 100% before arming is permitted."},
+			{"title": "Benefits Over Shock Tube", "description": "Millisecond precision timing (enables vibration-managed designs and fragmentation optimisation), individual unit verification (misfires detected pre-blast, not post-blast), and programmable firing sequences impossible with fixed delays (curved fronts, echelon, variable inter-hole timing)."},
+			{"title": "Arming", "description": "Only after the exclusion zone has been physically confirmed clear and the shot firer has authorised firing. Arming energises the detonators; once armed, the system is committed. A separate fire command then triggers the sequence."},
+			{"title": "Common Suppliers", "description": "Orica i-kon (most common in Australian open-cut), Dyno Nobel DigiShot (also widely used), Maxam MAXDET (strong presence in South America and Iberia). All systems are functionally similar but not interchangeable — loggers and blast boxes are product-specific."},
 		},
 	})
 

@@ -572,6 +572,42 @@ func SeedCollisionAvoidanceModule(database *gorm.DB, force bool) {
 		},
 	})
 
+	createSlide(database, s3.ID, "EMESRT Vehicle Interaction Zones", "DIAGRAM", 5, map[string]interface{}{
+		"type":        "diagram",
+		"heading":     "EMESRT 3-Zone Vehicle Interaction Model",
+		"description": "The EMESRT 3-zone model — Awareness (Zone 3), Warning (Zone 2), Intervention (Zone 1) — in plan view around a heavy vehicle. Each concentric zone corresponds to an EMESRT control level (L7, L8, L9) and drives a different system response: display-only in Zone 3, operator alert in Zone 2, automatic intervention in Zone 1. Zone boundaries are not fixed circles — they stretch dynamically with closing speed and braking distance, and asymmetrically to reflect sensor coverage and blind-spot geometry around the host vehicle.",
+		"diagramType": "image",
+		"imageUrl":    "/assets/diagrams/cas_vehicle_interaction_zones.png",
+	})
+
+	createSlide(database, s3.ID, "Sensor Modalities — Tradeoffs for CAS", "CONTENT", 6, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Sensor Modalities — Tradeoffs for CAS",
+		"introText": "No single sensor covers every failure mode. Production CAS systems fuse multiple modalities because each has blind spots that the others fill. Understanding the tradeoffs is fundamental to designing the sensor suite, power budget, and compute architecture.",
+		"items": []map[string]interface{}{
+			{"title": "4D Radar", "description": "Long range (100m+), works in dust, rain, and darkness, directly measures velocity via Doppler. Tradeoff: low angular resolution (a few degrees), poor object classification — a radar return can tell you something is there and moving, but not easily whether it's a truck, a light vehicle, or a berm."},
+			{"title": "LiDAR", "description": "High-resolution 3D point cloud, excellent for object shape classification and precise localisation. Tradeoff: degrades in heavy dust and rain (returns are scattered and attenuated), requires significantly more compute for point cloud processing, higher cost per unit, mechanical scanning LiDARs have moving parts that fail in harsh mine environments."},
+			{"title": "Camera / Vision", "description": "Richest per-pixel data, enables detailed object classification (truck vs person vs dozer), reads signage and paint lines. Tradeoff: lighting-dependent (fails in dust, fog, direct sun glare, and at night without IR), heavy compute for real-time CNN inference, high false-positive risk on dust particles and shadows unless carefully tuned."},
+			{"title": "Ultrasonic", "description": "Short-range (1–5 m), simple, cheap, extremely reliable. Used for low-speed proximity detection — parking sensors on passenger cars, final-metre confirmation on heavy equipment. Tradeoff: cannot substitute for longer-range sensors; only useful in the innermost detection envelope."},
+			{"title": "Fusion Rationale", "description": "No modality is sufficient alone. Production systems run radar + LiDAR as the primary fusion pair — radar gives range and velocity reliably in bad weather, LiDAR gives resolution and classification. Camera is supplemental for classification confirmation and operator display. Ultrasonic handles the final metre."},
+			{"title": "Why This Matters for Engineers", "description": "Sensor selection cascades into every other design decision: mounting positions (radar needs clear forward view, LiDAR needs roof line, camera needs wiper-protected glass), power budget (LiDAR and camera compute drive >100 W continuous), compute architecture (real-time fusion pipeline topology), and failure modes (what happens when LiDAR is obscured by dust — does radar alone give safe fallback?)."},
+		},
+	})
+
+	createSlide(database, s3.ID, "Edge Compute & Data Pipeline Constraints", "CONTENT", 7, map[string]interface{}{
+		"type":      "content",
+		"heading":   "Edge Compute & Data Pipeline Constraints",
+		"introText": "A mine CAS is not a cloud product. Every safety-critical decision runs at the vehicle edge, on constrained hardware, in a harsh physical environment, with no assumption of connectivity. These constraints shape the whole architecture.",
+		"items": []map[string]interface{}{
+			{"title": "Latency Budget", "description": "End-to-end sensor-to-alert latency must be under 100 ms for safety-critical events. Anything higher and the alert arrives after the operator would already be reacting. Zero tolerance for cloud-round-trip latency — every inference happens on-board."},
+			{"title": "Compute Budget", "description": "Rugged embedded systems — Nvidia Jetson Orin / AGX, Qualcomm automotive-grade SoCs, specialised ISO 26262-rated compute modules. Not datacenter GPUs. Power envelope typically 50–200 W per vehicle, passively cooled or fan-cooled with dust filtration."},
+			{"title": "Thermal Constraints", "description": "Mining trucks operate in ambient >45°C and direct sun load on cab and bodywork push electronics enclosures past 70°C. Compute modules must be rated for sustained high-temperature operation. Consumer-grade GPUs throttle hard in these conditions and are not viable."},
+			{"title": "Connectivity Assumptions", "description": "Mine sites have patchy connectivity: 900 MHz LTE-like radio, leaky-feeder cable in underground, some 5G private networks at newer sites, often Wi-Fi dead zones across the pit. System must be fully operational with zero connectivity — uplink is for logging and updates, never real-time safety."},
+			{"title": "Data Pipeline", "description": "Sensor capture → time synchronisation → per-sensor preprocessing → fusion → object detection and tracking → zone evaluation → alert arbitration → operator display/audio and (for L9) intervention command. Entire pipeline must run deterministically in <100 ms, every cycle, for the life of the vehicle."},
+			{"title": "Logging", "description": "Every detection, track, alert, and operator response is logged for post-incident analysis. Typical: on-board SSD with 30–90 days rolling buffer, synced to cloud whenever connectivity is available. Logs are evidence — data integrity, time synchronisation, and tamper-evident storage are engineering requirements, not nice-to-haves."},
+		},
+	})
+
 	// ── Section 4: What the Data Enables ────────────────────────────────────────
 	s4 := createSection(database, module.ID, "What the Data Enables", 4)
 
