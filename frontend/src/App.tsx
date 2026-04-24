@@ -4,6 +4,7 @@ import { AuthProvider } from "./lib/auth";
 import AuthLayout from "./components/layout/AuthLayout";
 import PlatformLayout from "./components/layout/PlatformLayout";
 
+import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
@@ -31,6 +32,8 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
+
           {/* Auth routes */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
@@ -64,9 +67,8 @@ function App() {
           <Route path="/modules/:slug/learn" element={<SlidePlayerPage />} />
           <Route path="/modules/:slug/learn/:slideId" element={<SlidePlayerPage />} />
 
-          {/* Redirects */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Unknown paths → landing (signed-in users bounce to dashboard from there) */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

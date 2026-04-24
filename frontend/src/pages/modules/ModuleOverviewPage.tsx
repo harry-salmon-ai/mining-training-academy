@@ -159,6 +159,7 @@ export default function ModuleOverviewPage() {
           ))}
         </div>
       )}
+
     </div>
   );
 }

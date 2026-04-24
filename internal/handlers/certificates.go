@@ -12,10 +12,38 @@ import (
 	"github.com/google/uuid"
 )
 
+func certificateToListJSON(c *models.Certificate, includeUser bool) gin.H {
+	h := gin.H{
+		"id":            c.ID,
+		"userId":        c.UserID,
+		"moduleId":      c.ModuleID,
+		"certificateNo": c.CertificateNo,
+		"issuedAt":      c.IssuedAt,
+		"expiresAt":     c.ExpiresAt,
+		"score":         c.Score,
+		"pdfUrl":        c.PDFURL,
+		"module": gin.H{
+			"id":    c.Module.ID,
+			"title": c.Module.Title,
+			"slug":  c.Module.Slug,
+		},
+	}
+	if includeUser {
+		h["user"] = newAuthUserResponse(&c.User)
+	}
+	return h
+}
+
 func ListCertificates(c *gin.Context) {
-	userID, _ := c.Get("userId")
-	role, _ := c.Get("userRole")
-	userRole := role.(models.UserRole)
+	userID, uidOK := contextUserID(c)
+	userRole, roleOK := contextUserRole(c)
+	if !uidOK {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	if !roleOK {
+		userRole = models.RoleLearner
+	}
 
 	query := db.DB.Preload("Module").Preload("User")
 
@@ -27,7 +55,12 @@ func ListCertificates(c *gin.Context) {
 
 	var certs []models.Certificate
 	query.Order("issued_at DESC").Find(&certs)
-	c.JSON(http.StatusOK, certs)
+	includeUser := userRole != models.RoleLearner
+	out := make([]gin.H, 0, len(certs))
+	for i := range certs {
+		out = append(out, certificateToListJSON(&certs[i], includeUser))
+	}
+	c.JSON(http.StatusOK, out)
 }
 
 func GenerateCertificate(c *gin.Context) {

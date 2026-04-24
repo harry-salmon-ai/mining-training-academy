@@ -86,6 +86,12 @@ func main() {
 			protected.POST("/modules/:id/archive", middleware.RequirePermission("modules", "update"), handlers.ArchiveModule)
 			protected.POST("/modules/:id/sections", middleware.RequirePermission("modules", "update"), handlers.CreateSection)
 
+			// SME notes on slides (admin only)
+			protected.GET("/slides/:id/notes", middleware.RequireAdmin(), handlers.ListSlideNotes)
+			protected.POST("/slides/:id/notes", middleware.RequireAdmin(), handlers.CreateSlideNote)
+			protected.PATCH("/notes/:id", middleware.RequireAdmin(), handlers.UpdateNote)
+			protected.DELETE("/notes/:id", middleware.RequireAdmin(), handlers.DeleteNote)
+
 			// Sections
 			protected.PATCH("/sections/:id", middleware.RequirePermission("modules", "update"), handlers.UpdateSection)
 			protected.DELETE("/sections/:id", middleware.RequirePermission("modules", "delete"), handlers.DeleteSection)

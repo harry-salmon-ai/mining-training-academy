@@ -72,7 +72,7 @@ func Register(c *gin.Context) {
 	c.SetCookie("token", token, 3*24*3600, "/", "", false, true)
 	c.JSON(http.StatusCreated, gin.H{
 		"token": token,
-		"user":  user,
+		"user":  newAuthUserResponse(&user),
 	})
 }
 
@@ -106,7 +106,7 @@ func Login(c *gin.Context) {
 	c.SetCookie("token", token, 3*24*3600, "/", "", false, true)
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
-		"user":  user,
+		"user":  newAuthUserResponse(&user),
 	})
 }
 
@@ -117,7 +117,7 @@ func GetMe(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, newAuthUserResponse(&user))
 }
 
 func Logout(c *gin.Context) {

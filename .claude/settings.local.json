@@ -21,7 +21,10 @@
       "Bash(gcloud auth:*)",
       "Bash(npx vite:*)",
       "Bash(open:*)",
-      "Bash(export PATH=\"$HOME/google-cloud-sdk/bin:$PATH:/Users/harrisonsalmon/.local/go/bin:$HOME/go/bin\")"
+      "Bash(export PATH=\"$HOME/google-cloud-sdk/bin:$PATH:/Users/harrisonsalmon/.local/go/bin:$HOME/go/bin\")",
+      "Bash(make deploy:*)",
+      "Bash(export PATH=\"$HOME/.local/google-cloud-sdk/bin:$PATH\")",
+      "Bash(gcloud run:*)"
     ]
   }
 }

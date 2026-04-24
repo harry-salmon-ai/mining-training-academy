@@ -53,6 +53,28 @@ func Run(database *gorm.DB, force bool) {
 		log.Println("Created admin user: admin@miningacademy.com / admin123!")
 	}
 
+	// Seed learner user
+	var learnerCount int64
+	database.Model(&models.User{}).Where("email = ?", "user@miningacademy.com").Count(&learnerCount)
+	if learnerCount == 0 {
+		hash, _ := auth.HashPassword("user123!")
+		name := "Demo Learner"
+		firstName := "Demo"
+		lastName := "Learner"
+		learner := models.User{
+			ID:           uuid.New().String(),
+			Email:        "user@miningacademy.com",
+			Name:         &name,
+			FirstName:    &firstName,
+			LastName:     &lastName,
+			PasswordHash: &hash,
+			Role:         models.RoleLearner,
+			IsActive:     true,
+		}
+		database.Create(&learner)
+		log.Println("Created learner user: user@miningacademy.com / user123!")
+	}
+
 	// Seed categories
 	var catCount int64
 	database.Model(&models.Category{}).Count(&catCount)

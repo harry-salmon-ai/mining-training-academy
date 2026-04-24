@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: `http://localhost:${process.env.PORT || 8082}`,
+        secure: false,
         changeOrigin: true,
         onError(err, req, res) {
           res.writeHead(503, { 'Content-Type': 'application/json' })

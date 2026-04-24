@@ -45,35 +45,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const autoLogin = useCallback(async () => {
-    try {
-      const data = await apiFetch<{ token: string; user: User }>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email: "admin@miningacademy.com", password: "admin123!" }),
-      });
-      localStorage.setItem("token", data.token);
-      setUser(data.user);
-    } catch {
-      // backend not reachable yet — leave as unauthenticated
-    }
-  }, []);
-
   const fetchUser = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        await autoLogin();
+        setLoading(false);
         return;
       }
       const data = await apiFetch<User>("/auth/me");
       setUser(data);
     } catch {
       localStorage.removeItem("token");
-      await autoLogin();
     } finally {
       setLoading(false);
     }
-  }, [autoLogin]);
+  }, []);
 
   useEffect(() => {
     // Check for token in URL (from OAuth callback)

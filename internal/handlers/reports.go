@@ -9,11 +9,15 @@ import (
 	"go-backend-react-frontend/internal/models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 func GetDashboardStats(c *gin.Context) {
-	role, _ := c.Get("userRole")
-	userRole := role.(models.UserRole)
+	userRole, ok := contextUserRole(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
 	if userRole == models.RoleAdmin || userRole == models.RoleSuperAdmin {
 		getAdminDashboard(c)
@@ -53,6 +57,32 @@ func getAdminDashboard(c *gin.Context) {
 	var recentActivity []models.AuditLog
 	db.DB.Preload("User").Order("created_at DESC").Limit(20).Find(&recentActivity)
 
+	type auditLogOut struct {
+		ID        string           `json:"id"`
+		UserID    string           `json:"userId"`
+		Action    string           `json:"action"`
+		Entity    string           `json:"entity"`
+		EntityID  *string          `json:"entityId"`
+		Metadata  datatypes.JSON   `json:"metadata"`
+		IPAddress *string          `json:"ipAddress"`
+		CreatedAt time.Time        `json:"createdAt"`
+		User      authUserResponse `json:"user,omitempty"`
+	}
+	recentOut := make([]auditLogOut, 0, len(recentActivity))
+	for _, log := range recentActivity {
+		recentOut = append(recentOut, auditLogOut{
+			ID:        log.ID,
+			UserID:    log.UserID,
+			Action:    log.Action,
+			Entity:    log.Entity,
+			EntityID:  log.EntityID,
+			Metadata:  log.Metadata,
+			IPAddress: log.IPAddress,
+			CreatedAt: log.CreatedAt,
+			User:      newAuthUserResponse(&log.User),
+		})
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"totalUsers":           totalUsers,
 		"activeUsers":          activeUsers,
@@ -62,12 +92,16 @@ func getAdminDashboard(c *gin.Context) {
 		"completedEnrollments": completedEnrollments,
 		"completionRate":       completionRate,
 		"avgScore":             avgScore,
-		"recentActivity":       recentActivity,
+		"recentActivity":       recentOut,
 	})
 }
 
 func getLearnerDashboard(c *gin.Context) {
-	userID, _ := c.Get("userId")
+	userID, ok := contextUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
 	var enrollmentCount, completedCount int64
 	db.DB.Model(&models.Enrollment{}).Where("user_id = ?", userID).Count(&enrollmentCount)
@@ -93,10 +127,25 @@ func getLearnerDashboard(c *gin.Context) {
 		avgScore = math.Round(*avgResult.Avg)
 	}
 
+	inProgressOut := make([]gin.H, 0, len(inProgress))
+	for _, e := range inProgress {
+		row := gin.H{
+			"id":       e.ID,
+			"status":   e.Status,
+			"progress": e.Progress,
+		}
+		mod := gin.H{"title": e.Module.Title}
+		if e.Module.CategoryID != "" {
+			mod["category"] = gin.H{"name": e.Module.Category.Name}
+		}
+		row["module"] = mod
+		inProgressOut = append(inProgressOut, row)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"enrollments":      enrollmentCount,
 		"completedModules": completedCount,
-		"inProgress":       inProgress,
+		"inProgress":       inProgressOut,
 		"certificates":     certCount,
 		"avgScore":         avgScore,
 	})

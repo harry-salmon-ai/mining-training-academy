@@ -150,7 +150,11 @@ func AddQuestion(c *gin.Context) {
 
 func StartQuizAttempt(c *gin.Context) {
 	quizID := c.Param("id")
-	userID, _ := c.Get("userId")
+	userID, ok := contextUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
 	var quiz models.Quiz
 	if err := db.DB.First(&quiz, "id = ?", quizID).Error; err != nil {
@@ -167,7 +171,7 @@ func StartQuizAttempt(c *gin.Context) {
 
 	attempt := models.QuizAttempt{
 		ID:     uuid.New().String(),
-		UserID: userID.(string),
+		UserID: userID,
 		QuizID: quizID,
 	}
 

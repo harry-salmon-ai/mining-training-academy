@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, List, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, List, X, StickyNote } from "lucide-react";
 import { apiFetch } from "../../lib/utils";
+import { useAuth } from "../../lib/auth";
 import { Button } from "../../components/ui/button";
 import { Progress } from "../../components/ui/progress";
 import SlideRenderer from "../../components/player/SlideRenderer";
+import SlideNotes from "../../components/modules/ModuleNotes";
 
 interface SlideData {
   id: string;
@@ -25,11 +27,13 @@ interface SectionData {
 export default function SlidePlayerPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [sections, setSections] = useState<SectionData[]>([]);
   const [allSlides, setAllSlides] = useState<SlideData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [moduleTitle, setModuleTitle] = useState("");
   const [showMenu, setShowMenu] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -96,6 +100,11 @@ export default function SlidePlayerPage() {
           <span className="text-gray-400">
             {currentIndex + 1} / {allSlides.length}
           </span>
+          {isAdmin && (
+            <Button variant="ghost" size="icon" className={`text-white hover:bg-gray-800 ${showNotes ? "bg-gray-700" : ""}`} onClick={() => setShowNotes(!showNotes)}>
+              <StickyNote size={18} />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" className="text-white hover:bg-gray-800" onClick={() => setShowMenu(!showMenu)}>
             <List size={18} />
           </Button>
@@ -106,38 +115,48 @@ export default function SlidePlayerPage() {
       <Progress value={progress} className="h-1 rounded-none" />
 
       {/* Content area */}
-      <div className="flex-1 overflow-y-auto relative">
-        {/* Section menu overlay */}
-        {showMenu && (
-          <div className="absolute inset-0 z-10 bg-white overflow-y-auto p-6">
-            <h2 className="text-lg font-bold mb-4">Contents</h2>
-            {sections.map((section, si) => (
-              <div key={section.id} className="mb-4">
-                <h3 className="font-medium text-sm text-gray-500 uppercase mb-2">
-                  Section {si + 1}: {section.title}
-                </h3>
-                {section.slides?.map((slide) => {
-                  const globalIndex = allSlides.findIndex((s) => s.id === slide.id);
-                  return (
-                    <button
-                      key={slide.id}
-                      onClick={() => { setCurrentIndex(globalIndex); setShowMenu(false); }}
-                      className={`block w-full text-left px-3 py-2 rounded text-sm ${
-                        globalIndex === currentIndex ? "bg-primary-100 text-primary-700 font-medium" : "hover:bg-gray-100"
-                      }`}
-                    >
-                      {slide.title}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Main slide area */}
+        <div className="flex-1 overflow-y-auto relative">
+          {/* Section menu overlay */}
+          {showMenu && (
+            <div className="absolute inset-0 z-10 bg-white overflow-y-auto p-6">
+              <h2 className="text-lg font-bold mb-4">Contents</h2>
+              {sections.map((section, si) => (
+                <div key={section.id} className="mb-4">
+                  <h3 className="font-medium text-sm text-gray-500 uppercase mb-2">
+                    Section {si + 1}: {section.title}
+                  </h3>
+                  {section.slides?.map((slide) => {
+                    const globalIndex = allSlides.findIndex((s) => s.id === slide.id);
+                    return (
+                      <button
+                        key={slide.id}
+                        onClick={() => { setCurrentIndex(globalIndex); setShowMenu(false); }}
+                        className={`block w-full text-left px-3 py-2 rounded text-sm ${
+                          globalIndex === currentIndex ? "bg-primary-100 text-primary-700 font-medium" : "hover:bg-gray-100"
+                        }`}
+                      >
+                        {slide.title}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="max-w-4xl mx-auto p-6">
+            <SlideRenderer slide={currentSlide} />
+          </div>
+        </div>
+
+        {/* Notes side panel */}
+        {showNotes && isAdmin && (
+          <div className="w-80 flex-shrink-0">
+            <SlideNotes slideId={currentSlide.id} onClose={() => setShowNotes(false)} />
           </div>
         )}
-
-        <div className="max-w-4xl mx-auto p-6">
-          <SlideRenderer slide={currentSlide} />
-        </div>
       </div>
 
       {/* Navigation footer */}

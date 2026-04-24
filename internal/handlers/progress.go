@@ -13,7 +13,11 @@ import (
 )
 
 func RecordSlideProgress(c *gin.Context) {
-	userID, _ := c.Get("userId")
+	uid, ok := contextUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	var req struct {
 		SlideID   string `json:"slideId" binding:"required"`
 		TimeSpent int    `json:"timeSpent"`
@@ -22,8 +26,6 @@ func RecordSlideProgress(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	uid := userID.(string)
 	now := time.Now()
 
 	var existing models.SlideProgress
@@ -53,10 +55,16 @@ func RecordSlideProgress(c *gin.Context) {
 
 func GetModuleProgress(c *gin.Context) {
 	moduleID := c.Param("id")
-	userID, _ := c.Get("userId")
+	userID, ok := contextUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
 	var enrollment models.Enrollment
-	err := db.DB.Where("user_id = ? AND module_id = ?", userID, moduleID).First(&enrollment).Error
+	err := db.DB.Where("user_id = ? AND module_id = ?", userID, moduleID).
+		Preload("Module.Category").
+		First(&enrollment).Error
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Not enrolled"})
 		return
@@ -76,7 +84,7 @@ func GetModuleProgress(c *gin.Context) {
 		Count(&totalSlides)
 
 	c.JSON(http.StatusOK, gin.H{
-		"enrollment":      enrollment,
+		"enrollment":      enrollmentToListJSON(&enrollment, false),
 		"totalSlides":     totalSlides,
 		"completedSlides": completedSlides,
 		"progress":        enrollment.Progress,
@@ -84,7 +92,11 @@ func GetModuleProgress(c *gin.Context) {
 }
 
 func GetProgressOverview(c *gin.Context) {
-	userID, _ := c.Get("userId")
+	userID, ok := contextUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
 	var enrollments []models.Enrollment
 	db.DB.Where("user_id = ?", userID).Preload("Module.Category").Find(&enrollments)
@@ -102,12 +114,17 @@ func GetProgressOverview(c *gin.Context) {
 	var certCount int64
 	db.DB.Model(&models.Certificate{}).Where("user_id = ?", userID).Count(&certCount)
 
+	details := make([]gin.H, 0, len(enrollments))
+	for i := range enrollments {
+		details = append(details, enrollmentToListJSON(&enrollments[i], false))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"enrollments":      len(enrollments),
 		"completedModules": completed,
 		"inProgress":       inProgress,
 		"certificates":     certCount,
-		"details":          enrollments,
+		"details":          details,
 	})
 }
 

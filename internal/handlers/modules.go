@@ -18,8 +18,10 @@ import (
 )
 
 func ListModules(c *gin.Context) {
-	role, _ := c.Get("userRole")
-	userRole, _ := role.(models.UserRole)
+	userRole, ok := contextUserRole(c)
+	if !ok {
+		userRole = models.RoleLearner
+	}
 
 	query := db.DB.Preload("Category").Preload("Author").Preload("Tags")
 
@@ -99,7 +101,11 @@ func CreateModule(c *gin.Context) {
 		return
 	}
 
-	authorID, _ := c.Get("userId")
+	authorID, ok := contextUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	slug := strings.ToLower(strings.ReplaceAll(strings.TrimSpace(req.Title), " ", "-"))
 	slug = strings.Map(func(r rune) rune {
 		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
@@ -121,7 +127,7 @@ func CreateModule(c *gin.Context) {
 		Level:       req.Level,
 		Duration:    req.Duration,
 		CategoryID:  req.CategoryID,
-		AuthorID:    authorID.(string),
+		AuthorID:    authorID,
 	}
 
 	if err := db.DB.Create(&module).Error; err != nil {

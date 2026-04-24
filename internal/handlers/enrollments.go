@@ -8,13 +8,50 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
+func enrollmentToListJSON(e *models.Enrollment, includeUser bool) gin.H {
+	h := gin.H{
+		"id":          e.ID,
+		"userId":      e.UserID,
+		"moduleId":    e.ModuleID,
+		"status":      e.Status,
+		"progress":    e.Progress,
+		"enrolledAt":  e.EnrolledAt,
+		"startedAt":   e.StartedAt,
+		"completedAt": e.CompletedAt,
+		"dueDate":     e.DueDate,
+	}
+	mod := gin.H{
+		"id":    e.Module.ID,
+		"title": e.Module.Title,
+		"slug":  e.Module.Slug,
+	}
+	if e.Module.CategoryID != "" {
+		mod["category"] = gin.H{
+			"id":    e.Module.Category.ID,
+			"name":  e.Module.Category.Name,
+			"slug":  e.Module.Category.Slug,
+			"color": e.Module.Category.Color,
+		}
+	}
+	h["module"] = mod
+	if includeUser {
+		h["user"] = newAuthUserResponse(&e.User)
+	}
+	return h
+}
+
 func ListEnrollments(c *gin.Context) {
-	userID, _ := c.Get("userId")
-	role, _ := c.Get("userRole")
-	userRole := role.(models.UserRole)
+	userID, uidOK := contextUserID(c)
+	userRole, roleOK := contextUserRole(c)
+	if !uidOK {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	if !roleOK {
+		userRole = models.RoleLearner
+	}
 
 	query := db.DB.Preload("Module.Category").Preload("User")
 
@@ -33,7 +70,12 @@ func ListEnrollments(c *gin.Context) {
 
 	var enrollments []models.Enrollment
 	query.Order("enrolled_at DESC").Find(&enrollments)
-	c.JSON(http.StatusOK, enrollments)
+	includeUser := userRole != models.RoleLearner
+	out := make([]gin.H, 0, len(enrollments))
+	for i := range enrollments {
+		out = append(out, enrollmentToListJSON(&enrollments[i], includeUser))
+	}
+	c.JSON(http.StatusOK, out)
 }
 
 func CreateEnrollment(c *gin.Context) {
@@ -47,14 +89,18 @@ func CreateEnrollment(c *gin.Context) {
 		return
 	}
 
-	assignedBy, _ := c.Get("userId")
+	assignedBy, ok := contextUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
 	enrollment := models.Enrollment{
 		ID:         uuid.New().String(),
 		UserID:     req.UserID,
 		ModuleID:   req.ModuleID,
 		Status:     models.EnrollmentNotStarted,
-		AssignedBy: ptrString(assignedBy.(string)),
+		AssignedBy: ptrString(assignedBy),
 	}
 
 	if err := db.DB.Create(&enrollment).Error; err != nil {
@@ -62,8 +108,8 @@ func CreateEnrollment(c *gin.Context) {
 		return
 	}
 
-	db.DB.Preload("Module").Preload("User").First(&enrollment, "id = ?", enrollment.ID)
-	c.JSON(http.StatusCreated, enrollment)
+	db.DB.Preload("Module.Category").Preload("User").First(&enrollment, "id = ?", enrollment.ID)
+	c.JSON(http.StatusCreated, enrollmentToListJSON(&enrollment, true))
 }
 
 func BulkEnroll(c *gin.Context) {
@@ -77,7 +123,11 @@ func BulkEnroll(c *gin.Context) {
 		return
 	}
 
-	assignedBy, _ := c.Get("userId")
+	assignedBy, ok := contextUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	created := 0
 	skipped := 0
 
@@ -87,7 +137,7 @@ func BulkEnroll(c *gin.Context) {
 			UserID:     uid,
 			ModuleID:   req.ModuleID,
 			Status:     models.EnrollmentNotStarted,
-			AssignedBy: ptrString(assignedBy.(string)),
+			AssignedBy: ptrString(assignedBy),
 		}
 		if err := db.DB.Create(&enrollment).Error; err != nil {
 			skipped++
@@ -110,7 +160,10 @@ func UpdateEnrollment(c *gin.Context) {
 	var req map[string]interface{}
 	c.ShouldBindJSON(&req)
 	db.DB.Model(&enrollment).Updates(req)
-	c.JSON(http.StatusOK, enrollment)
+	db.DB.Preload("Module.Category").Preload("User").First(&enrollment, "id = ?", id)
+	ur, roleOK := contextUserRole(c)
+	includeUser := roleOK && ur != models.RoleLearner
+	c.JSON(http.StatusOK, enrollmentToListJSON(&enrollment, includeUser))
 }
 
 func DeleteEnrollment(c *gin.Context) {
@@ -120,7 +173,11 @@ func DeleteEnrollment(c *gin.Context) {
 }
 
 func SelfEnroll(c *gin.Context) {
-	userID, _ := c.Get("userId")
+	userID, ok := contextUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	var req struct {
 		ModuleID string `json:"moduleId" binding:"required"`
 	}
@@ -138,7 +195,7 @@ func SelfEnroll(c *gin.Context) {
 
 	enrollment := models.Enrollment{
 		ID:       uuid.New().String(),
-		UserID:   userID.(string),
+		UserID:   userID,
 		ModuleID: req.ModuleID,
 		Status:   models.EnrollmentNotStarted,
 	}
@@ -147,14 +204,14 @@ func SelfEnroll(c *gin.Context) {
 		// Already enrolled - just return existing
 		var existing models.Enrollment
 		db.DB.Where("user_id = ? AND module_id = ?", userID, req.ModuleID).
-			Preload("Module", func(tx *gorm.DB) *gorm.DB { return tx }).
+			Preload("Module.Category").
 			First(&existing)
-		c.JSON(http.StatusOK, existing)
+		c.JSON(http.StatusOK, enrollmentToListJSON(&existing, false))
 		return
 	}
 
-	db.DB.Preload("Module").First(&enrollment, "id = ?", enrollment.ID)
-	c.JSON(http.StatusCreated, enrollment)
+	db.DB.Preload("Module.Category").First(&enrollment, "id = ?", enrollment.ID)
+	c.JSON(http.StatusCreated, enrollmentToListJSON(&enrollment, false))
 }
 
 func ptrString(s string) *string {
