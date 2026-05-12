@@ -6,8 +6,8 @@ enable_mysql = false
 enable_api_gateway = false
 enable_slack = false
 
-toml
-   [metadata]
-     owner = "harrison.salmon@applied.co"
-     maintainers = ["agent.turby@bots.applied.co"]
-     description = "Go + React hello world app"
+
+[metadata]
+   owner = "harrison.salmon@applied.co"
+   maintainers = ["agent.turby@bots.applied.co"]
+   description = "Go + React hello world app"
